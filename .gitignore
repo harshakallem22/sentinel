@@ -1,0 +1,26 @@
+# Docs: only the README is public
+*.md
+!README.md
+_reference/
+
+# Secrets and local config
+.env
+kubeconfig*
+*.tfvars
+!example.tfvars
+
+# Terraform state and caches
+*.tfstate
+*.tfstate.*
+.terraform/
+crash.log
+crash.*.log
+
+# Generated output
+rendered/
+localstack-data/
+
+# OS and editor
+.DS_Store
+.vscode/
+.idea/
