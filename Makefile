@@ -4,12 +4,12 @@ TF_DIR     := terraform/bootstrap
 CONTEXT    := k3d-$(CLUSTER)
 
 .DEFAULT_GOAL := help
-.PHONY: help up down destroy status cluster repo-secret bootstrap validate argocd-ui argocd-admin
+.PHONY: help up down destroy status cluster secrets repo-secret grafana-secret bootstrap validate argocd-ui argocd-admin grafana-ui grafana-admin
 
 help: ## list targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-16s %s\n", $$1, $$2}'
 
-up: cluster repo-secret bootstrap ## create or start the cluster, then bootstrap Argo CD
+up: cluster secrets bootstrap ## create or start the cluster, then bootstrap Argo CD
 	@echo "Platform is up. Run 'make status'."
 
 cluster: ## create the k3d cluster, or start it if it exists
@@ -20,8 +20,13 @@ cluster: ## create the k3d cluster, or start it if it exists
 	fi
 	@kubectl config use-context $(CONTEXT) >/dev/null
 
+secrets: repo-secret grafana-secret ## create all in-cluster secrets (never stored in Git)
+
 repo-secret: ## give Argo CD read access to the private repo
 	@./scripts/argocd-repo-secret.sh
+
+grafana-secret: ## create Grafana's admin login with a random password
+	@./scripts/grafana-admin-secret.sh
 
 bootstrap: ## install Argo CD and the root app with Terraform
 	terraform -chdir=$(TF_DIR) init -input=false -upgrade=false
@@ -47,6 +52,12 @@ argocd-ui: ## open the Argo CD UI on http://localhost:8081
 argocd-admin: ## print the initial admin login for the UI (never paste it anywhere)
 	@kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d; echo
 
+grafana-ui: ## open Grafana on http://localhost:3000
+	kubectl -n monitoring port-forward svc/kps-grafana 3000:80
+
+grafana-admin: ## print Grafana's admin login (never paste it anywhere)
+	@kubectl -n monitoring get secret grafana-admin -o jsonpath='{.data.admin-password}' | base64 -d; echo
+
 validate: ## lint YAML, check Terraform, validate manifests (run before every commit)
 	yamllint .
 	terraform fmt -check -recursive terraform
@@ -56,3 +67,4 @@ validate: ## lint YAML, check Terraform, validate manifests (run before every co
 		-schema-location default \
 		-schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
 		gitops
+	kubectl kustomize platform/dashboards | kubeconform -strict -summary -
