@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform
+  namespace: argocd
+spec:
+  description: Cluster add-ons (observability, mesh, rollouts, chaos)
+  sourceRepos:
+    - git@github.com:harshakallem22/sentinel.git
+    - https://prometheus-community.github.io/helm-charts
+    - https://grafana.github.io/helm-charts
+    - https://grafana-community.github.io/helm-charts
+    - https://open-telemetry.github.io/opentelemetry-helm-charts
+    - https://argoproj.github.io/argo-helm
+    - https://istio-release.storage.googleapis.com/charts
+    - https://charts.chaos-mesh.org
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: "*"
+  # Add-ons install CRDs, webhooks and cluster roles
+  clusterResourceWhitelist:
+    - group: "*"
+      kind: "*"
+---
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: boutique
+  namespace: argocd
+spec:
+  description: Google Online Boutique workload
+  sourceRepos:
+    - git@github.com:harshakallem22/sentinel.git
+  # Workload apps may deploy only into their own namespace
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: boutique
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace

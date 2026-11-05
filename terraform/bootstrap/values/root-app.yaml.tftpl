@@ -1,0 +1,15 @@
+applications:
+  root:
+    namespace: argocd
+    project: default
+    source:
+      repoURL: ${repo_url}
+      targetRevision: ${target_revision}
+      path: gitops/apps
+    destination:
+      server: https://kubernetes.default.svc
+      namespace: argocd
+    syncPolicy:
+      automated:
+        prune: true
+        selfHeal: true

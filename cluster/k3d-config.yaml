@@ -1,0 +1,28 @@
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: sentinel
+servers: 1
+agents: 0
+image: rancher/k3s:v1.35.9-k3s1
+ports:
+  # Traefik (bundled with k3s) so load tests go through real Service load balancing, not port-forward
+  - port: 8080:80
+    nodeFilters:
+      - loadbalancer
+  - port: 8443:443
+    nodeFilters:
+      - loadbalancer
+registries:
+  # Holds the arm64 Online Boutique images built from upstream source
+  create:
+    name: sentinel-registry
+    host: "127.0.0.1"
+    hostPort: "5001"
+options:
+  k3d:
+    wait: true
+    timeout: "180s"
+  kubeconfig:
+    updateDefaultKubeconfig: true
+    switchCurrentContext: true
