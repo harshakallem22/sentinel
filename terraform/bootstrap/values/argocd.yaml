@@ -10,20 +10,22 @@ notifications:
   enabled: false
 
 controller:
+  # 512Mi was OOMKilled while syncing kube-prometheus-stack (108 objects); steady use is ~330Mi
   resources:
     requests:
       cpu: 100m
-      memory: 256Mi
+      memory: 384Mi
     limits:
-      memory: 512Mi
+      memory: 1Gi
 
 repoServer:
+  # Rendering large charts briefly needs more than 256Mi
   resources:
     requests:
       cpu: 50m
-      memory: 96Mi
+      memory: 128Mi
     limits:
-      memory: 256Mi
+      memory: 512Mi
 
 server:
   resources:
