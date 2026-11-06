@@ -44,6 +44,17 @@ patches:
       kind: Service
       metadata:
         name: frontend-external
+  # Python services need >15s to start when every pod boots at once; upstream liveness killed them on Day 3
+  - target:
+      kind: Deployment
+      name: (emailservice|recommendationservice)
+    patch: |-
+      - op: add
+        path: /spec/template/spec/containers/0/startupProbe
+        value:
+          grpc: {port: 8080}
+          periodSeconds: 5
+          failureThreshold: 12
   # Background traffic only; k6 generates the measured load
   - target:
       kind: Deployment
