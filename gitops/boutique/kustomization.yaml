@@ -1,0 +1,64 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: boutique
+
+resources:
+  # Unmodified release/kubernetes-manifests.yaml from Online Boutique v0.10.7 (Apache 2.0)
+  - upstream/kubernetes-manifests.yaml
+  - ingress.yaml
+
+images:
+  # Built for arm64 from upstream source by scripts/build-boutique-images.sh (Google publishes amd64 only)
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/adservice
+    newName: sentinel-registry:5001/boutique/adservice
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/cartservice
+    newName: sentinel-registry:5001/boutique/cartservice
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/checkoutservice
+    newName: sentinel-registry:5001/boutique/checkoutservice
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/currencyservice
+    newName: sentinel-registry:5001/boutique/currencyservice
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/emailservice
+    newName: sentinel-registry:5001/boutique/emailservice
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/frontend
+    newName: sentinel-registry:5001/boutique/frontend
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/loadgenerator
+    newName: sentinel-registry:5001/boutique/loadgenerator
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/paymentservice
+    newName: sentinel-registry:5001/boutique/paymentservice
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/productcatalogservice
+    newName: sentinel-registry:5001/boutique/productcatalogservice
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/recommendationservice
+    newName: sentinel-registry:5001/boutique/recommendationservice
+  - name: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/shippingservice
+    newName: sentinel-registry:5001/boutique/shippingservice
+  # Upstream uses the floating redis:alpine tag
+  - name: redis
+    newTag: 8.10.2-alpine
+    digest: sha256:9f8d2d789b9a1d1e3f283f979aa9cbf393373806472e1ccd460e2f9c869b833b
+
+patches:
+  # Port 80 on the node already belongs to Traefik, so this LoadBalancer would stay pending; ingress.yaml replaces it
+  - patch: |-
+      $patch: delete
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: frontend-external
+  # Background traffic only; k6 generates the measured load
+  - target:
+      kind: Deployment
+      name: loadgenerator
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/env/1/value
+        value: "3"
+      - op: replace
+        path: /spec/template/spec/containers/0/resources
+        value:
+          requests: {cpu: 100m, memory: 128Mi}
+          limits: {cpu: 300m, memory: 384Mi}
+      - op: add
+        path: /spec/template/spec/initContainers/0/resources
+        value:
+          requests: {cpu: 10m, memory: 16Mi}
+          limits: {cpu: 50m, memory: 32Mi}

@@ -4,12 +4,12 @@ TF_DIR     := terraform/bootstrap
 CONTEXT    := k3d-$(CLUSTER)
 
 .DEFAULT_GOAL := help
-.PHONY: help up down destroy status cluster secrets repo-secret grafana-secret bootstrap validate argocd-ui argocd-admin grafana-ui grafana-admin
+.PHONY: help up down destroy status cluster images secrets repo-secret grafana-secret bootstrap validate argocd-ui argocd-admin grafana-ui grafana-admin
 
 help: ## list targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-16s %s\n", $$1, $$2}'
 
-up: cluster secrets bootstrap ## create or start the cluster, then bootstrap Argo CD
+up: cluster images secrets bootstrap ## create or start the cluster, build images, then bootstrap Argo CD
 	@echo "Platform is up. Run 'make status'."
 
 cluster: ## create the k3d cluster, or start it if it exists
@@ -19,6 +19,9 @@ cluster: ## create the k3d cluster, or start it if it exists
 		k3d cluster create --config $(K3D_CONFIG); \
 	fi
 	@kubectl config use-context $(CONTEXT) >/dev/null
+
+images: ## build the Online Boutique images for arm64 into the local registry (skips existing)
+	@./scripts/build-boutique-images.sh
 
 secrets: repo-secret grafana-secret ## create all in-cluster secrets (never stored in Git)
 
@@ -68,3 +71,4 @@ validate: ## lint YAML, check Terraform, validate manifests (run before every co
 		-schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
 		gitops
 	kubectl kustomize platform/dashboards | kubeconform -strict -summary -
+	kubectl kustomize gitops/boutique | kubeconform -strict -summary -
