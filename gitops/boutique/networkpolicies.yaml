@@ -385,3 +385,26 @@ spec:
               app: redis-cart
       ports:
         - {protocol: TCP, port: 6379}
+---
+# Traced services export spans to the OpenTelemetry collector in namespace tracing
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-otel-egress
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: [frontend, checkoutservice, currencyservice, emailservice, paymentservice, productcatalogservice, recommendationservice]
+  policyTypes: [Egress]
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: tracing
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: opentelemetry-collector
+      ports:
+        - {protocol: TCP, port: 4317}

@@ -59,6 +59,147 @@ patches:
         value:
           name: FRONTEND_MESSAGE
           value: "Sentinel release 2: shipped through a canary"
+  # Services with OpenTelemetry built in send traces to our collector (same env vars as upstream's tracing component, minus its Cloud profiler)
+  - target:
+      kind: Deployment
+      name: frontend
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: frontend
+      spec:
+        template:
+          spec:
+            containers:
+              - name: server
+                env:
+                  - name: ENABLE_TRACING
+                    value: "1"
+                  - name: COLLECTOR_SERVICE_ADDR
+                    value: otel-collector.tracing.svc.cluster.local:4317
+                  - name: OTEL_SERVICE_NAME
+                    value: frontend
+  - target:
+      kind: Deployment
+      name: checkoutservice
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: checkoutservice
+      spec:
+        template:
+          spec:
+            containers:
+              - name: server
+                env:
+                  - name: ENABLE_TRACING
+                    value: "1"
+                  - name: COLLECTOR_SERVICE_ADDR
+                    value: otel-collector.tracing.svc.cluster.local:4317
+                  - name: OTEL_SERVICE_NAME
+                    value: checkoutservice
+  - target:
+      kind: Deployment
+      name: currencyservice
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: currencyservice
+      spec:
+        template:
+          spec:
+            containers:
+              - name: server
+                env:
+                  - name: ENABLE_TRACING
+                    value: "1"
+                  - name: COLLECTOR_SERVICE_ADDR
+                    value: otel-collector.tracing.svc.cluster.local:4317
+                  - name: OTEL_SERVICE_NAME
+                    value: currencyservice
+  - target:
+      kind: Deployment
+      name: emailservice
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: emailservice
+      spec:
+        template:
+          spec:
+            containers:
+              - name: server
+                env:
+                  - name: ENABLE_TRACING
+                    value: "1"
+                  - name: COLLECTOR_SERVICE_ADDR
+                    value: otel-collector.tracing.svc.cluster.local:4317
+                  - name: OTEL_SERVICE_NAME
+                    value: emailservice
+  - target:
+      kind: Deployment
+      name: paymentservice
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: paymentservice
+      spec:
+        template:
+          spec:
+            containers:
+              - name: server
+                env:
+                  - name: ENABLE_TRACING
+                    value: "1"
+                  - name: COLLECTOR_SERVICE_ADDR
+                    value: otel-collector.tracing.svc.cluster.local:4317
+                  - name: OTEL_SERVICE_NAME
+                    value: paymentservice
+  - target:
+      kind: Deployment
+      name: productcatalogservice
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: productcatalogservice
+      spec:
+        template:
+          spec:
+            containers:
+              - name: server
+                env:
+                  - name: ENABLE_TRACING
+                    value: "1"
+                  - name: COLLECTOR_SERVICE_ADDR
+                    value: otel-collector.tracing.svc.cluster.local:4317
+                  - name: OTEL_SERVICE_NAME
+                    value: productcatalogservice
+  - target:
+      kind: Deployment
+      name: recommendationservice
+    patch: |-
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: recommendationservice
+      spec:
+        template:
+          spec:
+            containers:
+              - name: server
+                env:
+                  - name: ENABLE_TRACING
+                    value: "1"
+                  - name: COLLECTOR_SERVICE_ADDR
+                    value: otel-collector.tracing.svc.cluster.local:4317
+                  - name: OTEL_SERVICE_NAME
+                    value: recommendationservice
   # Python services need >15s to start when every pod boots at once; upstream liveness killed them on Day 3
   - target:
       kind: Deployment
