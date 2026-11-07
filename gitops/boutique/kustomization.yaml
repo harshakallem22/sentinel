@@ -58,24 +58,7 @@ patches:
         path: /spec/template/spec/containers/0/env/-
         value:
           name: FRONTEND_MESSAGE
-          value: "Sentinel release 3: shipped through a canary"
-  # Release 3 is deliberately broken (unresolvable currency service) to prove automatic rollback
-  - target:
-      kind: Deployment
-      name: frontend
-    patch: |-
-      apiVersion: apps/v1
-      kind: Deployment
-      metadata:
-        name: frontend
-      spec:
-        template:
-          spec:
-            containers:
-              - name: server
-                env:
-                  - name: CURRENCY_SERVICE_ADDR
-                    value: "currencyservice-release3:7000"
+          value: "Sentinel release 2: shipped through a canary"
   # Python services need >15s to start when every pod boots at once; upstream liveness killed them on Day 3
   - target:
       kind: Deployment
