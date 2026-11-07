@@ -12,3 +12,6 @@ configMapGenerator:
   - name: dashboard-platform-health
     files:
       - platform-health.json
+  - name: dashboard-boutique-slo
+    files:
+      - slo.json

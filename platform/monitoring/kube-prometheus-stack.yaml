@@ -85,6 +85,75 @@ prometheus:
       limits:
         memory: 1Gi
 
+# SLO targets come from the Day 9 baseline: P95 68 ms at ~15 req/s, 0% errors, P95 268 ms once the shop saturates
+additionalPrometheusRulesMap:
+  sentinel-slo:
+    groups:
+      - name: sentinel-slo-sli
+        interval: 30s
+        rules:
+          - record: slo:frontend_error_ratio:rate1m
+            expr: |-
+              (sum(rate(traefik_service_requests_total{service=~"boutique-frontend-(stable|canary)-80@.*",code=~"5.."}[1m])) or vector(0))
+              /
+              sum(rate(traefik_service_requests_total{service=~"boutique-frontend-(stable|canary)-80@.*"}[1m]))
+          - record: slo:frontend_error_ratio:rate5m
+            expr: |-
+              (sum(rate(traefik_service_requests_total{service=~"boutique-frontend-(stable|canary)-80@.*",code=~"5.."}[5m])) or vector(0))
+              /
+              sum(rate(traefik_service_requests_total{service=~"boutique-frontend-(stable|canary)-80@.*"}[5m]))
+          - record: slo:frontend_error_ratio:rate30m
+            expr: |-
+              (sum(rate(traefik_service_requests_total{service=~"boutique-frontend-(stable|canary)-80@.*",code=~"5.."}[30m])) or vector(0))
+              /
+              sum(rate(traefik_service_requests_total{service=~"boutique-frontend-(stable|canary)-80@.*"}[30m]))
+          - record: slo:frontend_latency_p95_seconds:5m
+            expr: |-
+              histogram_quantile(0.95,
+                sum by (le) (rate(traefik_service_request_duration_seconds_bucket{service=~"boutique-frontend-(stable|canary)-80@.*"}[5m])))
+          - record: slo:checkout_error_ratio:rate5m
+            expr: |-
+              (sum(rate(traefik_router_requests_total{router=~"boutique-frontend-checkout-.*",code=~"5.."}[5m])) or vector(0))
+              /
+              sum(rate(traefik_router_requests_total{router=~"boutique-frontend-checkout-.*"}[5m]))
+          - record: slo:checkout_error_ratio:rate30m
+            expr: |-
+              (sum(rate(traefik_router_requests_total{router=~"boutique-frontend-checkout-.*",code=~"5.."}[30m])) or vector(0))
+              /
+              sum(rate(traefik_router_requests_total{router=~"boutique-frontend-checkout-.*"}[30m]))
+      - name: sentinel-slo-alerts
+        rules:
+          # Burn rate 14.4 against a 1% budget: the standard fast-burn factor, confirmed by a short window so it clears quickly
+          - alert: FrontendErrorBudgetFastBurn
+            expr: slo:frontend_error_ratio:rate5m > 0.144 and slo:frontend_error_ratio:rate1m > 0.144
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: Frontend is returning over 14.4% errors (availability SLO 99%)
+          - alert: FrontendErrorBudgetSlowBurn
+            expr: slo:frontend_error_ratio:rate30m > 0.01 and slo:frontend_error_ratio:rate5m > 0.01
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: Frontend errors are above the 1% budget over 30 minutes
+          # 250 ms is ~3.7x the baseline P95 and a histogram bucket edge, so the estimate is exact at the threshold
+          - alert: FrontendLatencyP95High
+            expr: slo:frontend_latency_p95_seconds:5m > 0.25
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: Frontend P95 latency is above 250 ms
+          - alert: CheckoutSuccessLow
+            expr: slo:checkout_error_ratio:rate5m > 0.01
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: More than 1% of checkouts are failing (SLO 99%)
+
 alertmanager:
   alertmanagerSpec:
     resources:

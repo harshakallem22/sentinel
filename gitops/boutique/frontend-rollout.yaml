@@ -86,6 +86,21 @@ spec:
         - name: frontend-weighted
           kind: TraefikService
 ---
+# Its own router gives checkout its own Traefik metrics, which the checkout-success SLO is computed from
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: frontend-checkout
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: Path(`/cart/checkout`) && Method(`POST`)
+      kind: Rule
+      services:
+        - name: frontend-weighted
+          kind: TraefikService
+---
 apiVersion: argoproj.io/v1alpha1
 kind: AnalysisTemplate
 metadata:
