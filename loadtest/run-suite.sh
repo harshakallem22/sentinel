@@ -4,6 +4,11 @@
 # Env: RATE, DURATION, MAX_RATE, BASE_RATE, SPIKE_RATE, BASE_URL go to k6; OUT_DIR, LABEL, WARMUP=1, COOLDOWN (seconds)
 set -euo pipefail
 
+# A Mac that sleeps mid-run stalls k6 and the cluster, which voids the numbers
+if [ -z "${KEEP_AWAKE:-}" ] && command -v caffeinate >/dev/null; then
+  KEEP_AWAKE=1 exec caffeinate -i "$0" "$@"
+fi
+
 profile="${1:?usage: run-suite.sh <smoke|steady|ramp|spike> [trials]}"
 trials="${2:-1}"
 here="$(cd "$(dirname "$0")" && pwd)"
