@@ -1,11 +1,14 @@
 # Default deny, then only the call paths in the Online Boutique call graph; NetworkPolicies match pod ports, not Service ports
+# Port 15008 is ambient mTLS (HBONE) on the same allowed paths; 169.254.7.127 is where ambient sends kubelet probes from
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-all
 spec:
   podSelector: {}
-  policyTypes: [Ingress, Egress]
+  policyTypes:
+  - Ingress
+  - Egress
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -13,18 +16,21 @@ metadata:
   name: allow-dns-egress
 spec:
   podSelector: {}
-  policyTypes: [Egress]
+  policyTypes:
+  - Egress
   egress:
-    - to:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: kube-system
-          podSelector:
-            matchLabels:
-              k8s-app: kube-dns
-      ports:
-        - {protocol: UDP, port: 53}
-        - {protocol: TCP, port: 53}
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          k8s-app: kube-dns
+    ports:
+    - protocol: UDP
+      port: 53
+    - protocol: TCP
+      port: 53
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -34,21 +40,24 @@ spec:
   podSelector:
     matchLabels:
       app: frontend
-  policyTypes: [Ingress]
+  policyTypes:
+  - Ingress
   ingress:
-    - from:
-        - podSelector:
-            matchLabels:
-              app: loadgenerator
-        # Traefik is the only way in from outside the cluster
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: kube-system
-          podSelector:
-            matchLabels:
-              app.kubernetes.io/name: traefik
-      ports:
-        - {protocol: TCP, port: 8080}
+  - from:
+    - podSelector:
+        matchLabels:
+          app: loadgenerator
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: kube-system
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: traefik
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 15008
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -58,20 +67,24 @@ spec:
   podSelector:
     matchLabels:
       app: productcatalogservice
-  policyTypes: [Ingress]
+  policyTypes:
+  - Ingress
   ingress:
-    - from:
-        - podSelector:
-            matchLabels:
-              app: frontend
-        - podSelector:
-            matchLabels:
-              app: checkoutservice
-        - podSelector:
-            matchLabels:
-              app: recommendationservice
-      ports:
-        - {protocol: TCP, port: 3550}
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    - podSelector:
+        matchLabels:
+          app: checkoutservice
+    - podSelector:
+        matchLabels:
+          app: recommendationservice
+    ports:
+    - protocol: TCP
+      port: 3550
+    - protocol: TCP
+      port: 15008
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -81,17 +94,21 @@ spec:
   podSelector:
     matchLabels:
       app: currencyservice
-  policyTypes: [Ingress]
+  policyTypes:
+  - Ingress
   ingress:
-    - from:
-        - podSelector:
-            matchLabels:
-              app: frontend
-        - podSelector:
-            matchLabels:
-              app: checkoutservice
-      ports:
-        - {protocol: TCP, port: 7000}
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    - podSelector:
+        matchLabels:
+          app: checkoutservice
+    ports:
+    - protocol: TCP
+      port: 7000
+    - protocol: TCP
+      port: 15008
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -101,17 +118,21 @@ spec:
   podSelector:
     matchLabels:
       app: cartservice
-  policyTypes: [Ingress]
+  policyTypes:
+  - Ingress
   ingress:
-    - from:
-        - podSelector:
-            matchLabels:
-              app: frontend
-        - podSelector:
-            matchLabels:
-              app: checkoutservice
-      ports:
-        - {protocol: TCP, port: 7070}
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    - podSelector:
+        matchLabels:
+          app: checkoutservice
+    ports:
+    - protocol: TCP
+      port: 7070
+    - protocol: TCP
+      port: 15008
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -121,14 +142,18 @@ spec:
   podSelector:
     matchLabels:
       app: recommendationservice
-  policyTypes: [Ingress]
+  policyTypes:
+  - Ingress
   ingress:
-    - from:
-        - podSelector:
-            matchLabels:
-              app: frontend
-      ports:
-        - {protocol: TCP, port: 8080}
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 15008
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -138,17 +163,21 @@ spec:
   podSelector:
     matchLabels:
       app: shippingservice
-  policyTypes: [Ingress]
+  policyTypes:
+  - Ingress
   ingress:
-    - from:
-        - podSelector:
-            matchLabels:
-              app: frontend
-        - podSelector:
-            matchLabels:
-              app: checkoutservice
-      ports:
-        - {protocol: TCP, port: 50051}
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    - podSelector:
+        matchLabels:
+          app: checkoutservice
+    ports:
+    - protocol: TCP
+      port: 50051
+    - protocol: TCP
+      port: 15008
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -158,14 +187,18 @@ spec:
   podSelector:
     matchLabels:
       app: checkoutservice
-  policyTypes: [Ingress]
+  policyTypes:
+  - Ingress
   ingress:
-    - from:
-        - podSelector:
-            matchLabels:
-              app: frontend
-      ports:
-        - {protocol: TCP, port: 5050}
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    ports:
+    - protocol: TCP
+      port: 5050
+    - protocol: TCP
+      port: 15008
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -175,14 +208,18 @@ spec:
   podSelector:
     matchLabels:
       app: adservice
-  policyTypes: [Ingress]
+  policyTypes:
+  - Ingress
   ingress:
-    - from:
-        - podSelector:
-            matchLabels:
-              app: frontend
-      ports:
-        - {protocol: TCP, port: 9555}
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    ports:
+    - protocol: TCP
+      port: 9555
+    - protocol: TCP
+      port: 15008
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -192,14 +229,18 @@ spec:
   podSelector:
     matchLabels:
       app: paymentservice
-  policyTypes: [Ingress]
+  policyTypes:
+  - Ingress
   ingress:
-    - from:
-        - podSelector:
-            matchLabels:
-              app: checkoutservice
-      ports:
-        - {protocol: TCP, port: 50051}
+  - from:
+    - podSelector:
+        matchLabels:
+          app: checkoutservice
+    ports:
+    - protocol: TCP
+      port: 50051
+    - protocol: TCP
+      port: 15008
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -209,14 +250,18 @@ spec:
   podSelector:
     matchLabels:
       app: emailservice
-  policyTypes: [Ingress]
+  policyTypes:
+  - Ingress
   ingress:
-    - from:
-        - podSelector:
-            matchLabels:
-              app: checkoutservice
-      ports:
-        - {protocol: TCP, port: 8080}
+  - from:
+    - podSelector:
+        matchLabels:
+          app: checkoutservice
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 15008
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -226,14 +271,18 @@ spec:
   podSelector:
     matchLabels:
       app: redis-cart
-  policyTypes: [Ingress]
+  policyTypes:
+  - Ingress
   ingress:
-    - from:
-        - podSelector:
-            matchLabels:
-              app: cartservice
-      ports:
-        - {protocol: TCP, port: 6379}
+  - from:
+    - podSelector:
+        matchLabels:
+          app: cartservice
+    ports:
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 15008
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -243,14 +292,18 @@ spec:
   podSelector:
     matchLabels:
       app: loadgenerator
-  policyTypes: [Egress]
+  policyTypes:
+  - Egress
   egress:
-    - to:
-        - podSelector:
-            matchLabels:
-              app: frontend
-      ports:
-        - {protocol: TCP, port: 8080}
+  - to:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    ports:
+    - protocol: TCP
+      port: 8080
+    - protocol: TCP
+      port: 15008
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -260,50 +313,67 @@ spec:
   podSelector:
     matchLabels:
       app: frontend
-  policyTypes: [Egress]
+  policyTypes:
+  - Egress
   egress:
-    - to:
-        - podSelector:
-            matchLabels:
-              app: productcatalogservice
-      ports:
-        - {protocol: TCP, port: 3550}
-    - to:
-        - podSelector:
-            matchLabels:
-              app: currencyservice
-      ports:
-        - {protocol: TCP, port: 7000}
-    - to:
-        - podSelector:
-            matchLabels:
-              app: cartservice
-      ports:
-        - {protocol: TCP, port: 7070}
-    - to:
-        - podSelector:
-            matchLabels:
-              app: recommendationservice
-      ports:
-        - {protocol: TCP, port: 8080}
-    - to:
-        - podSelector:
-            matchLabels:
-              app: shippingservice
-      ports:
-        - {protocol: TCP, port: 50051}
-    - to:
-        - podSelector:
-            matchLabels:
-              app: checkoutservice
-      ports:
-        - {protocol: TCP, port: 5050}
-    - to:
-        - podSelector:
-            matchLabels:
-              app: adservice
-      ports:
-        - {protocol: TCP, port: 9555}
+  - to:
+    - podSelector:
+        matchLabels:
+          app: productcatalogservice
+    ports:
+    - protocol: TCP
+      port: 3550
+    - &id001
+      protocol: TCP
+      port: 15008
+  - to:
+    - podSelector:
+        matchLabels:
+          app: currencyservice
+    ports:
+    - protocol: TCP
+      port: 7000
+    - *id001
+  - to:
+    - podSelector:
+        matchLabels:
+          app: cartservice
+    ports:
+    - protocol: TCP
+      port: 7070
+    - *id001
+  - to:
+    - podSelector:
+        matchLabels:
+          app: recommendationservice
+    ports:
+    - protocol: TCP
+      port: 8080
+    - *id001
+  - to:
+    - podSelector:
+        matchLabels:
+          app: shippingservice
+    ports:
+    - protocol: TCP
+      port: 50051
+    - *id001
+  - to:
+    - podSelector:
+        matchLabels:
+          app: checkoutservice
+    ports:
+    - protocol: TCP
+      port: 5050
+    - *id001
+  - to:
+    - podSelector:
+        matchLabels:
+          app: adservice
+    ports:
+    - protocol: TCP
+      port: 9555
+    - *id001
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -313,44 +383,59 @@ spec:
   podSelector:
     matchLabels:
       app: checkoutservice
-  policyTypes: [Egress]
+  policyTypes:
+  - Egress
   egress:
-    - to:
-        - podSelector:
-            matchLabels:
-              app: productcatalogservice
-      ports:
-        - {protocol: TCP, port: 3550}
-    - to:
-        - podSelector:
-            matchLabels:
-              app: currencyservice
-      ports:
-        - {protocol: TCP, port: 7000}
-    - to:
-        - podSelector:
-            matchLabels:
-              app: cartservice
-      ports:
-        - {protocol: TCP, port: 7070}
-    - to:
-        - podSelector:
-            matchLabels:
-              app: shippingservice
-      ports:
-        - {protocol: TCP, port: 50051}
-    - to:
-        - podSelector:
-            matchLabels:
-              app: paymentservice
-      ports:
-        - {protocol: TCP, port: 50051}
-    - to:
-        - podSelector:
-            matchLabels:
-              app: emailservice
-      ports:
-        - {protocol: TCP, port: 8080}
+  - to:
+    - podSelector:
+        matchLabels:
+          app: productcatalogservice
+    ports:
+    - protocol: TCP
+      port: 3550
+    - &id001
+      protocol: TCP
+      port: 15008
+  - to:
+    - podSelector:
+        matchLabels:
+          app: currencyservice
+    ports:
+    - protocol: TCP
+      port: 7000
+    - *id001
+  - to:
+    - podSelector:
+        matchLabels:
+          app: cartservice
+    ports:
+    - protocol: TCP
+      port: 7070
+    - *id001
+  - to:
+    - podSelector:
+        matchLabels:
+          app: shippingservice
+    ports:
+    - protocol: TCP
+      port: 50051
+    - *id001
+  - to:
+    - podSelector:
+        matchLabels:
+          app: paymentservice
+    ports:
+    - protocol: TCP
+      port: 50051
+    - *id001
+  - to:
+    - podSelector:
+        matchLabels:
+          app: emailservice
+    ports:
+    - protocol: TCP
+      port: 8080
+    - *id001
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -360,14 +445,18 @@ spec:
   podSelector:
     matchLabels:
       app: recommendationservice
-  policyTypes: [Egress]
+  policyTypes:
+  - Egress
   egress:
-    - to:
-        - podSelector:
-            matchLabels:
-              app: productcatalogservice
-      ports:
-        - {protocol: TCP, port: 3550}
+  - to:
+    - podSelector:
+        matchLabels:
+          app: productcatalogservice
+    ports:
+    - protocol: TCP
+      port: 3550
+    - protocol: TCP
+      port: 15008
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -377,16 +466,19 @@ spec:
   podSelector:
     matchLabels:
       app: cartservice
-  policyTypes: [Egress]
+  policyTypes:
+  - Egress
   egress:
-    - to:
-        - podSelector:
-            matchLabels:
-              app: redis-cart
-      ports:
-        - {protocol: TCP, port: 6379}
+  - to:
+    - podSelector:
+        matchLabels:
+          app: redis-cart
+    ports:
+    - protocol: TCP
+      port: 6379
+    - protocol: TCP
+      port: 15008
 ---
-# Traced services export spans to the OpenTelemetry collector in namespace tracing
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -394,17 +486,125 @@ metadata:
 spec:
   podSelector:
     matchExpressions:
-      - key: app
-        operator: In
-        values: [frontend, checkoutservice, currencyservice, emailservice, paymentservice, productcatalogservice, recommendationservice]
-  policyTypes: [Egress]
+    - key: app
+      operator: In
+      values:
+      - frontend
+      - checkoutservice
+      - currencyservice
+      - emailservice
+      - paymentservice
+      - productcatalogservice
+      - recommendationservice
+  policyTypes:
+  - Egress
   egress:
-    - to:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: tracing
-          podSelector:
-            matchLabels:
-              app.kubernetes.io/name: opentelemetry-collector
-      ports:
-        - {protocol: TCP, port: 4317}
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: tracing
+      podSelector:
+        matchLabels:
+          app.kubernetes.io/name: opentelemetry-collector
+    ports:
+    - protocol: TCP
+      port: 4317
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ambient-probes
+spec:
+  podSelector: {}
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - ipBlock:
+        cidr: 169.254.7.127/32
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-checkout-waypoint-ingress
+spec:
+  podSelector:
+    matchLabels:
+      gateway.networking.k8s.io/gateway-name: checkout-waypoint
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          app: frontend
+    ports:
+    - protocol: TCP
+      port: 15008
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-checkout-waypoint-egress
+spec:
+  podSelector:
+    matchLabels:
+      gateway.networking.k8s.io/gateway-name: checkout-waypoint
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          app: checkoutservice
+    ports:
+    - protocol: TCP
+      port: 15008
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: istio-system
+      podSelector:
+        matchLabels:
+          app: istiod
+    ports:
+    - protocol: TCP
+      port: 15012
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-waypoint-traffic
+spec:
+  podSelector:
+    matchLabels:
+      app: frontend
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - podSelector:
+        matchLabels:
+          gateway.networking.k8s.io/gateway-name: checkout-waypoint
+    ports:
+    - protocol: TCP
+      port: 15008
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-checkoutservice-from-waypoint
+spec:
+  podSelector:
+    matchLabels:
+      app: checkoutservice
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector:
+        matchLabels:
+          gateway.networking.k8s.io/gateway-name: checkout-waypoint
+    ports:
+    - protocol: TCP
+      port: 15008

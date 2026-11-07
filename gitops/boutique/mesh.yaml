@@ -1,0 +1,32 @@
+# L7 proxy for checkoutservice so its AuthorizationPolicy can check gRPC methods, not just identities
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
+metadata:
+  name: checkout-waypoint
+  labels:
+    istio.io/waypoint-for: service
+spec:
+  gatewayClassName: istio-waypoint
+  listeners:
+    - name: mesh
+      port: 15008
+      protocol: HBONE
+---
+apiVersion: security.istio.io/v1
+kind: AuthorizationPolicy
+metadata:
+  name: checkoutservice-allow-frontend
+spec:
+  targetRefs:
+    - kind: Service
+      group: ""
+      name: checkoutservice
+  action: ALLOW
+  rules:
+    - from:
+        - source:
+            principals: ["cluster.local/ns/boutique/sa/frontend"]
+      to:
+        - operation:
+            methods: ["POST"]
+            paths: ["/hipstershop.CheckoutService/PlaceOrder"]

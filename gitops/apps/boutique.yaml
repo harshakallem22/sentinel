@@ -26,6 +26,10 @@ spec:
     automated:
       prune: true
       selfHeal: true
+    # Enrolls every boutique pod in Istio ambient (ztunnel mTLS) without sidecars
+    managedNamespaceMetadata:
+      labels:
+        istio.io/dataplane-mode: ambient
     syncOptions:
       - CreateNamespace=true
       - RespectIgnoreDifferences=true

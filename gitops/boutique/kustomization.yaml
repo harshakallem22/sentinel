@@ -7,6 +7,7 @@ resources:
   - upstream/kubernetes-manifests.yaml
   - frontend-rollout.yaml
   - networkpolicies.yaml
+  - mesh.yaml
 
 images:
   # Built for arm64 from upstream source by scripts/build-boutique-images.sh (Google publishes amd64 only)
@@ -200,6 +201,14 @@ patches:
                     value: otel-collector.tracing.svc.cluster.local:4317
                   - name: OTEL_SERVICE_NAME
                     value: recommendationservice
+  # Calls to checkoutservice go through its waypoint, where the AuthorizationPolicy is enforced
+  - target:
+      kind: Service
+      name: checkoutservice
+    patch: |-
+      - op: add
+        path: /metadata/labels/istio.io~1use-waypoint
+        value: checkout-waypoint
   # Python services need >15s to start when every pod boots at once; upstream liveness killed them on Day 3
   - target:
       kind: Deployment
