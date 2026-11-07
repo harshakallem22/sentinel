@@ -14,9 +14,26 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: boutique
+  # Argo Rollouts changes these during a canary (traffic weights, pod-hash selectors); don't undo it
+  ignoreDifferences:
+    - group: traefik.io
+      kind: TraefikService
+      managedFieldsManagers: [rollouts-controller]
+    - group: ""
+      kind: Service
+      managedFieldsManagers: [rollouts-controller]
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+      # Rollout and Traefik CRDs come from other apps in the same push
+      - SkipDryRunOnMissingResource=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m

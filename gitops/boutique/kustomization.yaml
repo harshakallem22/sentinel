@@ -5,7 +5,7 @@ namespace: boutique
 resources:
   # Unmodified release/kubernetes-manifests.yaml from Online Boutique v0.10.7 (Apache 2.0)
   - upstream/kubernetes-manifests.yaml
-  - ingress.yaml
+  - frontend-rollout.yaml
   - networkpolicies.yaml
 
 images:
@@ -45,6 +45,14 @@ patches:
       kind: Service
       metadata:
         name: frontend-external
+  # The Rollout in frontend-rollout.yaml runs the frontend pods from this template
+  - target:
+      kind: Deployment
+      name: frontend
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 0
   # Python services need >15s to start when every pod boots at once; upstream liveness killed them on Day 3
   - target:
       kind: Deployment

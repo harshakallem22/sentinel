@@ -30,6 +30,38 @@ images:
     newName: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/shippingservice
 
 patches:
+  # kind has no Argo Rollouts or Traefik: run the frontend from its Deployment instead
+  - target:
+      kind: Deployment
+      name: frontend
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+  - patch: |-
+      $patch: delete
+      apiVersion: argoproj.io/v1alpha1
+      kind: Rollout
+      metadata:
+        name: frontend
+  - patch: |-
+      $patch: delete
+      apiVersion: argoproj.io/v1alpha1
+      kind: AnalysisTemplate
+      metadata:
+        name: frontend-canary-health
+  - patch: |-
+      $patch: delete
+      apiVersion: traefik.io/v1alpha1
+      kind: TraefikService
+      metadata:
+        name: frontend-weighted
+  - patch: |-
+      $patch: delete
+      apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
+      metadata:
+        name: frontend
   # Private-repo runners have 2 vCPUs, so the real CPU requests cannot all be scheduled next to the control plane
   - target:
       kind: Deployment

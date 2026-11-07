@@ -91,4 +91,5 @@ validate: ## lint YAML, check Terraform, validate manifests (run before every co
 		-schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
 		gitops platform/rbac platform/traefik
 	kubectl kustomize platform/dashboards | kubeconform -strict -summary -
-	kubectl kustomize gitops/boutique | kubeconform -strict -summary -
+	kubectl kustomize gitops/boutique | kubeconform -strict -summary -schema-location default \
+		-schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' -

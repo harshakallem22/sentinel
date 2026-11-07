@@ -42,7 +42,8 @@ jobs:
             -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
             gitops platform/rbac platform/traefik
           kubectl kustomize platform/dashboards | ./kubeconform -strict -summary -
-          kubectl kustomize gitops/boutique | ./kubeconform -strict -summary -
+          kubectl kustomize gitops/boutique | ./kubeconform -strict -summary -schema-location default \
+            -schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' -
 
   terraform:
     runs-on: ubuntu-24.04
