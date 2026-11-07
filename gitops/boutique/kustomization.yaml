@@ -53,6 +53,12 @@ patches:
       - op: replace
         path: /spec/replicas
         value: 0
+      # Changing this banner is how a new frontend version is shipped without touching upstream code
+      - op: add
+        path: /spec/template/spec/containers/0/env/-
+        value:
+          name: FRONTEND_MESSAGE
+          value: "Sentinel release 2: shipped through a canary"
   # Python services need >15s to start when every pod boots at once; upstream liveness killed them on Day 3
   - target:
       kind: Deployment
