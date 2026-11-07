@@ -1,0 +1,11 @@
+profile: ambient
+global:
+  platform: k3s
+
+# Default request is 512Mi; one node with a dozen pods needs far less
+resources:
+  requests:
+    cpu: 25m
+    memory: 48Mi
+  limits:
+    memory: 256Mi

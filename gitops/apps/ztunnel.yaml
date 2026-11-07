@@ -1,0 +1,38 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ztunnel
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  sources:
+    - repoURL: https://istio-release.storage.googleapis.com/charts
+      chart: ztunnel
+      targetRevision: 1.30.6
+      helm:
+        releaseName: ztunnel
+        valueFiles:
+          - $values/platform/istio/ztunnel.yaml
+    - repoURL: git@github.com:harshakallem22/sentinel.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: istio-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+      # istiod and ztunnel need the CRDs from istio-base, synced in the same push
+      - SkipDryRunOnMissingResource=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m

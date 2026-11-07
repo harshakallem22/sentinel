@@ -1,0 +1,2 @@
+# k3s's Traefik already owns the Gateway API CRDs (v1.6.1); Istio uses those instead of installing its own
+defaultRevision: default
