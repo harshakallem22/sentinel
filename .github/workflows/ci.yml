@@ -78,9 +78,7 @@ jobs:
       - name: deploy Online Boutique
         run: |
           kubectl create namespace boutique
-          kubectl kustomize gitops/boutique \
-            | sed 's#sentinel-registry:5001/boutique/#us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/#' \
-            | kubectl apply -f -
+          kubectl apply -k .github/smoke
           kubectl -n boutique wait --for=condition=Available deployment --all --timeout=600s
       - name: NetworkPolicies block unlisted traffic
         run: ./scripts/netpol-check.sh

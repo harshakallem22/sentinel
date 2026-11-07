@@ -1,0 +1,39 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# The deployed overlay, run on an x86 runner with Google's published amd64 images
+resources:
+  - ../../gitops/boutique
+
+images:
+  - name: sentinel-registry:5001/boutique/adservice
+    newName: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/adservice
+  - name: sentinel-registry:5001/boutique/cartservice
+    newName: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/cartservice
+  - name: sentinel-registry:5001/boutique/checkoutservice
+    newName: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/checkoutservice
+  - name: sentinel-registry:5001/boutique/currencyservice
+    newName: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/currencyservice
+  - name: sentinel-registry:5001/boutique/emailservice
+    newName: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/emailservice
+  - name: sentinel-registry:5001/boutique/frontend
+    newName: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/frontend
+  - name: sentinel-registry:5001/boutique/loadgenerator
+    newName: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/loadgenerator
+  - name: sentinel-registry:5001/boutique/paymentservice
+    newName: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/paymentservice
+  - name: sentinel-registry:5001/boutique/productcatalogservice
+    newName: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/productcatalogservice
+  - name: sentinel-registry:5001/boutique/recommendationservice
+    newName: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/recommendationservice
+  - name: sentinel-registry:5001/boutique/shippingservice
+    newName: us-central1-docker.pkg.dev/online-boutique-ci/microservices-demo/shippingservice
+
+patches:
+  # Private-repo runners have 2 vCPUs, so the real CPU requests cannot all be scheduled next to the control plane
+  - target:
+      kind: Deployment
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/containers/0/resources/requests/cpu
+        value: 10m
