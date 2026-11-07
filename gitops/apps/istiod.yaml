@@ -21,6 +21,13 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: istio-system
+  # istiod injects its CA and switches failurePolicy at runtime, which is not drift
+  ignoreDifferences:
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+      jqPathExpressions:
+        - .webhooks[]?.clientConfig.caBundle
+        - .webhooks[]?.failurePolicy
   syncPolicy:
     automated:
       prune: true
@@ -28,6 +35,7 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - RespectIgnoreDifferences=true
       # istiod and ztunnel need the CRDs from istio-base, synced in the same push
       - SkipDryRunOnMissingResource=true
     retry:
