@@ -75,6 +75,12 @@ patches:
       kind: IngressRoute
       metadata:
         name: frontend
+  - patch: |-
+      $patch: delete
+      apiVersion: traefik.io/v1alpha1
+      kind: IngressRoute
+      metadata:
+        name: frontend-checkout
   # Private-repo runners have 2 vCPUs, so the real CPU requests cannot all be scheduled next to the control plane
   - target:
       kind: Deployment
