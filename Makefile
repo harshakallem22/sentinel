@@ -2,9 +2,11 @@ CLUSTER    := sentinel
 K3D_CONFIG := cluster/k3d-config.yaml
 TF_DIR     := terraform/bootstrap
 CONTEXT    := k3d-$(CLUSTER)
+IAM_DIR    := terraform/localstack-iam
+LOCALSTACK := localstack/localstack:2026.09.1
 
 .DEFAULT_GOAL := help
-.PHONY: help up down destroy status cluster images secrets repo-secret grafana-secret bootstrap validate argocd-ui argocd-admin grafana-ui grafana-admin
+.PHONY: help up down destroy status cluster images secrets repo-secret grafana-secret bootstrap validate argocd-ui argocd-admin grafana-ui grafana-admin localstack-up localstack-down iam iam-check
 
 help: ## list targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-16s %s\n", $$1, $$2}'
@@ -61,11 +63,29 @@ grafana-ui: ## open Grafana on http://localhost:3000
 grafana-admin: ## print Grafana's admin login (never paste it anywhere)
 	@kubectl -n monitoring get secret grafana-admin -o jsonpath='{.data.admin-password}' | base64 -d; echo
 
+localstack-up: ## start LocalStack (needs LOCALSTACK_AUTH_TOKEN in .env) with IAM enforcement on
+	@test -f .env || { echo "Copy .env.example to .env and set LOCALSTACK_AUTH_TOKEN"; exit 1; }
+	@docker start sentinel-localstack >/dev/null 2>&1 || docker run -d --name sentinel-localstack \
+		--env-file .env -e ENFORCE_IAM=1 -p 127.0.0.1:4566:4566 --memory 1g $(LOCALSTACK) >/dev/null
+	@until curl -fsS localhost:4566/_localstack/health >/dev/null 2>&1; do sleep 2; done; echo "LocalStack is up on localhost:4566"
+
+localstack-down: ## stop and remove LocalStack (its data is not kept)
+	docker rm -f sentinel-localstack
+
+iam: ## create the results bucket and least-privilege CI role in LocalStack
+	terraform -chdir=$(IAM_DIR) init -input=false -upgrade=false
+	terraform -chdir=$(IAM_DIR) apply -input=false -auto-approve
+
+iam-check: ## prove the CI role can write only under loadtest/
+	@./scripts/localstack-iam-check.sh
+
 validate: ## lint YAML, check Terraform, validate manifests (run before every commit)
 	yamllint .
 	terraform fmt -check -recursive terraform
 	terraform -chdir=$(TF_DIR) init -backend=false -input=false >/dev/null
 	terraform -chdir=$(TF_DIR) validate
+	terraform -chdir=$(IAM_DIR) init -backend=false -input=false >/dev/null
+	terraform -chdir=$(IAM_DIR) validate
 	kubeconform -strict -summary -ignore-missing-schemas \
 		-schema-location default \
 		-schema-location 'https://raw.githubusercontent.com/datreeio/CRDs-catalog/main/{{.Group}}/{{.ResourceKind}}_{{.ResourceAPIVersion}}.json' \
