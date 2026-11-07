@@ -6,6 +6,7 @@ resources:
   # Unmodified release/kubernetes-manifests.yaml from Online Boutique v0.10.7 (Apache 2.0)
   - upstream/kubernetes-manifests.yaml
   - ingress.yaml
+  - networkpolicies.yaml
 
 images:
   # Built for arm64 from upstream source by scripts/build-boutique-images.sh (Google publishes amd64 only)
