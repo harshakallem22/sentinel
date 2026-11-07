@@ -210,6 +210,14 @@ patches:
       - op: add
         path: /metadata/labels/istio.io~1use-waypoint
         value: checkout-waypoint
+  # The autoscaled backends go through a waypoint so each gRPC request, not each connection, picks a replica
+  - target:
+      kind: Service
+      name: (currencyservice|recommendationservice)
+    patch: |-
+      - op: add
+        path: /metadata/labels/istio.io~1use-waypoint
+        value: grpc-lb-waypoint
   # Python services need >15s to start when every pod boots at once; upstream liveness killed them on Day 3
   - target:
       kind: Deployment
