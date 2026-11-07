@@ -1,0 +1,31 @@
+fullnameOverride: tempo
+
+tempo:
+  # Local disk is enough for one laptop; traces are only needed for the current session
+  retention: 24h
+  reportingEnabled: false
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/traces
+      wal:
+        path: /var/tempo/wal
+  # Only OTLP gRPC from the collector; Jaeger and OTLP HTTP listeners are not used
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: 0.0.0.0:4317
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 512Mi
+
+persistence:
+  enabled: false
+
+serviceMonitor:
+  enabled: true

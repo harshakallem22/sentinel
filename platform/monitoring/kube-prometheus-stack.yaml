@@ -137,6 +137,25 @@ grafana:
       uid: loki
       access: proxy
       url: http://loki.logging.svc.cluster.local:3100
+    - name: Tempo
+      type: tempo
+      uid: tempo
+      access: proxy
+      url: http://tempo.tracing.svc.cluster.local:3200
+      jsonData:
+        # Jump from a span to that pod's logs around the same time
+        tracesToLogsV2:
+          datasourceUid: loki
+          spanStartTimeShift: -1m
+          spanEndTimeShift: 1m
+          filterByTraceID: false
+          tags:
+            - key: service.name
+              value: app
+        serviceMap:
+          datasourceUid: prometheus
+        nodeGraph:
+          enabled: true
   sidecar:
     resources:
       requests:

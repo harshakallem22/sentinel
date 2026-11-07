@@ -1,0 +1,64 @@
+fullnameOverride: otel-collector
+mode: deployment
+replicaCount: 1
+
+image:
+  repository: otel/opentelemetry-collector
+  tag: 0.162.0
+
+# Only OTLP gRPC is used, so the other default receivers and ports are switched off
+ports:
+  otlp-http:
+    enabled: false
+  jaeger-compact:
+    enabled: false
+  jaeger-thrift:
+    enabled: false
+  jaeger-grpc:
+    enabled: false
+  zipkin:
+    enabled: false
+  metrics:
+    enabled: true
+
+config:
+  receivers:
+    jaeger: null
+    zipkin: null
+    prometheus: null
+    otlp:
+      protocols:
+        http: null
+        grpc:
+          endpoint: ${env:MY_POD_IP}:4317
+  processors:
+    # Refuse data before the container hits its limit instead of being OOMKilled
+    memory_limiter:
+      check_interval: 1s
+      limit_percentage: 80
+      spike_limit_percentage: 25
+    batch:
+      timeout: 2s
+  exporters:
+    otlp/tempo:
+      endpoint: tempo.tracing.svc.cluster.local:4317
+      tls:
+        insecure: true
+  service:
+    pipelines:
+      traces:
+        receivers: [otlp]
+        processors: [memory_limiter, batch]
+        exporters: [otlp/tempo]
+      metrics: null
+      logs: null
+
+resources:
+  requests:
+    cpu: 25m
+    memory: 64Mi
+  limits:
+    memory: 256Mi
+
+serviceMonitor:
+  enabled: true
