@@ -56,6 +56,19 @@ kubelet:
         action: drop
 
 prometheus:
+  # Traefik's per-service request metrics drive canary analysis
+  additionalPodMonitors:
+    - name: traefik
+      namespaceSelector:
+        matchNames: [kube-system]
+      selector:
+        matchLabels:
+          app.kubernetes.io/name: traefik
+      podMetricsEndpoints:
+        - port: metrics
+          path: /metrics
+          # Canary analysis reads 1-minute rates
+          interval: 15s
   prometheusSpec:
     # 1 day covers a working session and keeps the head block small
     retention: 1d
