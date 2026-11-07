@@ -56,6 +56,12 @@ patches:
       kind: TraefikService
       metadata:
         name: frontend-weighted
+  - patch: |-
+      $patch: delete
+      apiVersion: autoscaling/v2
+      kind: HorizontalPodAutoscaler
+      metadata:
+        name: frontend
   # kind has no Istio either
   - patch: |-
       $patch: delete

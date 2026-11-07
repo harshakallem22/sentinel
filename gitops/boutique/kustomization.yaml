@@ -8,6 +8,7 @@ resources:
   - frontend-rollout.yaml
   - networkpolicies.yaml
   - mesh.yaml
+  - hpa.yaml
 
 images:
   # Built for arm64 from upstream source by scripts/build-boutique-images.sh (Google publishes amd64 only)
