@@ -55,11 +55,14 @@ patches:
           grpc: {port: 8080}
           periodSeconds: 5
           failureThreshold: 12
-  # Background traffic only; k6 generates the measured load
+  # Off by default to save laptop CPU/RAM; k6 generates the measured load (scale up for background traffic)
   - target:
       kind: Deployment
       name: loadgenerator
     patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 0
       - op: replace
         path: /spec/template/spec/containers/0/env/1/value
         value: "3"

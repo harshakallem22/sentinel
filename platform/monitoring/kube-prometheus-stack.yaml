@@ -24,10 +24,42 @@ defaultRules:
     kubeSchedulerRecording: false
     windows: false
 
+kubeApiServer:
+  serviceMonitor:
+    metricRelabelings:
+      # Chart default, restated because setting this list replaces it
+      - sourceLabels: [__name__, le]
+        regex: >-
+          (etcd_request|apiserver_request_slo|apiserver_request_sli|apiserver_request)_duration_seconds_bucket;(0\.15|0\.2|0\.3|0\.35|0\.4|0\.45|0\.6|0\.7|0\.8|0\.9|1\.25|1\.5|1\.75|2|3|3\.5|4|4\.5|6|7|8|9|15|20|40|45|50)(\.0)?
+        action: drop
+      # Large histograms no rule or dashboard here uses (~12k series on a 16 GB laptop)
+      - sourceLabels: [__name__]
+        regex: (etcd_request|apiserver_request|apiserver_watch_list)_duration_seconds_bucket
+        action: drop
+      - sourceLabels: [__name__]
+        regex: apiserver_(watch_cache_read_wait_seconds|response_sizes|request_body_size_bytes|watch_events_sizes)_bucket
+        action: drop
+
+kubelet:
+  serviceMonitor:
+    metricRelabelings:
+      # Chart default, restated because setting this list replaces it
+      - sourceLabels: [__name__, le]
+        regex: (csi_operations|storage_operation_duration)_seconds_bucket;(0.25|2.5|15|25|120|600)(\.0)?
+        action: drop
+      # k3s serves the whole control plane from one process, so kubelet repeats the apiserver job's ~36k series
+      - sourceLabels: [__name__]
+        regex: (apiserver|etcd|scheduler|workqueue|rest_client|authentication|authorization|aggregator)_.*
+        action: drop
+      - sourceLabels: [__name__]
+        regex: (watch_cache|storage|apiextensions|kube_apiserver|field_validation)_.*
+        action: drop
+
 prometheus:
   prometheusSpec:
-    retention: 2d
-    retentionSize: 1GB
+    # 1 day covers a working session and keeps the head block small
+    retention: 1d
+    retentionSize: 512MB
     # Pick up monitors and rules from any app, not only ones labelled for this release
     serviceMonitorSelectorNilUsesHelmValues: false
     podMonitorSelectorNilUsesHelmValues: false
