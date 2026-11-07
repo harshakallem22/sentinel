@@ -1,30 +1,19 @@
-// Steady browsing traffic through Traefik, used to give a canary something to measure.
-// Usage: k6 run -e RATE=5 -e DURATION=10m loadtest/k6/steady.js
-import http from 'k6/http';
-import { check } from 'k6';
-
-const BASE = __ENV.BASE_URL || 'http://localhost:8080';
-const PRODUCTS = ['OLJCESPC7Z', '66VCHSJNUP', '1YMWWN1N4O', 'L9ECAV7KIM', '2ZYFJ3GM2N', '0PUK6V6EV0', 'LS4PSXUNUM', '9SIQT8TOJO', '6E92ZMYYFZ'];
+// Constant shopper traffic for baselines and canaries. Usage: k6 run -e RATE=10 -e DURATION=60s loadtest/k6/steady.js
+import { shopper, thresholds } from './lib.js';
 
 export const options = {
   scenarios: {
     steady: {
+      // Arrival rate, not a VU count, so a slow server gets the same offered load instead of fewer requests
       executor: 'constant-arrival-rate',
-      rate: Number(__ENV.RATE || 5),
+      rate: Number(__ENV.RATE || 10),
       timeUnit: '1s',
-      duration: __ENV.DURATION || '5m',
-      preAllocatedVUs: 10,
-      maxVUs: 50,
+      duration: __ENV.DURATION || '60s',
+      preAllocatedVUs: 20,
+      maxVUs: 100,
     },
   },
-  thresholds: {
-    http_req_failed: ['rate<0.01'],
-  },
+  thresholds,
 };
 
-export default function () {
-  const res = Math.random() < 0.5
-    ? http.get(`${BASE}/`, { tags: { page: 'home' } })
-    : http.get(`${BASE}/product/${PRODUCTS[Math.floor(Math.random() * PRODUCTS.length)]}`, { tags: { page: 'product' } });
-  check(res, { 'status is 200': (r) => r.status === 200 });
-}
+export default shopper;

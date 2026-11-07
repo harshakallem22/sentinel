@@ -18,6 +18,7 @@ crash.*.log
 
 # Generated output
 rendered/
+loadtest/results/
 localstack-data/
 
 # OS and editor
