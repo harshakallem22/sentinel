@@ -1,0 +1,34 @@
+controller:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 25m
+      memory: 64Mi
+    limits:
+      memory: 256Mi
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+
+# Only the traffic router this cluster uses gets RBAC
+providerRBAC:
+  enabled: true
+  providers:
+    istio: false
+    smi: false
+    ambassador: false
+    awsLoadBalancerController: false
+    awsAppMesh: false
+    traefik: true
+    apisix: false
+    contour: false
+    glooPlatform: false
+    gatewayAPI: false
+
+dashboard:
+  enabled: false
+
+notifications:
+  secret:
+    create: false
