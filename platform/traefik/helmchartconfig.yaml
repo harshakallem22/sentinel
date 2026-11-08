@@ -11,3 +11,10 @@ spec:
         buckets: "0.005,0.01,0.025,0.05,0.1,0.25,0.5,1,2.5,5"
         # Per-router series, so the checkout route can be measured apart from the rest of the shop
         addRoutersLabels: true
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        # Peaked at 173Mi during the 60 req/s spike tests
+        memory: 384Mi

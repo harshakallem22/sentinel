@@ -209,6 +209,14 @@ prometheusOperator:
       memory: 64Mi
     limits:
       memory: 160Mi
+  # Sidecar in the Prometheus and Alertmanager pods; peaked at 34Mi
+  prometheusConfigReloader:
+    resources:
+      requests:
+        cpu: 5m
+        memory: 32Mi
+      limits:
+        memory: 64Mi
 
 kube-state-metrics:
   resources:
