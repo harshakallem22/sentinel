@@ -329,8 +329,8 @@
             "type": "prometheus",
             "uid": "prometheus"
           },
-          "expr": "sum by (type) (chaos_controller_manager_chaos_experiments{namespace=\"boutique\", phase=\"Running\"}) > 0",
-          "legendFormat": "{{type}}"
+          "expr": "sum by (kind) (chaos_controller_manager_chaos_experiments{exported_namespace=\"boutique\", phase=\"running\"}) > 0",
+          "legendFormat": "{{kind}}"
         }
       ],
       "fieldConfig": {
