@@ -39,6 +39,15 @@ spec:
       kind: Secret
       name: chaos-mesh-chaosd-client-certs
       jsonPointers: [/data]
+    # A random "rollme" pod annotation, regenerated on every render, would restart these on every refresh
+    - group: apps
+      kind: Deployment
+      name: chaos-controller-manager
+      jsonPointers: [/spec/template/metadata/annotations/rollme]
+    - group: apps
+      kind: DaemonSet
+      name: chaos-daemon
+      jsonPointers: [/spec/template/metadata/annotations/rollme]
     - group: admissionregistration.k8s.io
       kind: MutatingWebhookConfiguration
       jqPathExpressions:
