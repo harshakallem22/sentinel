@@ -69,6 +69,45 @@ prometheus:
           path: /metrics
           # Canary analysis reads 1-minute rates
           interval: 15s
+    # ztunnel's L4 metrics: which workloads talk, and whether over mTLS
+    - name: ztunnel
+      namespaceSelector:
+        matchNames: [istio-system]
+      selector:
+        matchLabels:
+          app: ztunnel
+      podMetricsEndpoints:
+        - port: ztunnel-stats
+          path: /metrics
+          metricRelabelings:
+            - sourceLabels: [__name__]
+              regex: istio_.*
+              action: keep
+    # Waypoints are the only place with per-request (L7) metrics for the services behind them
+    - name: waypoints
+      namespaceSelector:
+        matchNames: [boutique]
+      selector:
+        matchExpressions:
+          - key: gateway.networking.k8s.io/gateway-name
+            operator: Exists
+      podMetricsEndpoints:
+        - port: metrics
+          path: /stats/prometheus
+          metricRelabelings:
+            # The endpoint also serves ~2k Envoy internals no dashboard uses
+            - sourceLabels: [__name__]
+              regex: istio_.*
+              action: keep
+    - name: chaos-mesh
+      namespaceSelector:
+        matchNames: [chaos-mesh]
+      selector:
+        matchLabels:
+          app.kubernetes.io/component: controller-manager
+      podMetricsEndpoints:
+        - port: http
+          path: /metrics
   prometheusSpec:
     # 1 day covers a working session and keeps the head block small
     retention: 1d
