@@ -1,0 +1,16 @@
+# Applied by hand for a test run, not by Argo CD, which would re-run it on every sync
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: currencyservice-latency
+  namespace: boutique
+spec:
+  action: delay
+  mode: all
+  selector:
+    namespaces: [boutique]
+    labelSelectors:
+      app: currencyservice
+  delay:
+    latency: 300ms
+  duration: 60s

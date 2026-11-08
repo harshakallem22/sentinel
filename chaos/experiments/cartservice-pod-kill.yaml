@@ -1,0 +1,13 @@
+# Applied by hand for a test run, not by Argo CD, which would re-run it on every sync
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: cartservice-pod-kill
+  namespace: boutique
+spec:
+  action: pod-kill
+  mode: one
+  selector:
+    namespaces: [boutique]
+    labelSelectors:
+      app: cartservice

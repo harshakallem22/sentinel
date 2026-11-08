@@ -30,6 +30,9 @@ spec:
     managedNamespaceMetadata:
       labels:
         istio.io/dataplane-mode: ambient
+      # Opts this namespace in to Chaos Mesh, which ignores all others
+      annotations:
+        chaos-mesh.org/inject: enabled
     syncOptions:
       - CreateNamespace=true
       - RespectIgnoreDifferences=true

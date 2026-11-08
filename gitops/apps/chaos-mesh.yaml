@@ -1,0 +1,58 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: chaos-mesh
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: platform
+  sources:
+    - repoURL: https://charts.chaos-mesh.org
+      chart: chaos-mesh
+      targetRevision: 2.8.5
+      helm:
+        releaseName: chaos-mesh
+        valueFiles:
+          - $values/platform/chaos/chaos-mesh.yaml
+    - repoURL: git@github.com:harshakallem22/sentinel.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: chaos-mesh
+  # The chart generates new TLS certs on every render; keep the ones the cluster already uses
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: chaos-mesh-webhook-certs
+      jsonPointers: [/data]
+    - group: ""
+      kind: Secret
+      name: chaos-mesh-daemon-certs
+      jsonPointers: [/data]
+    - group: ""
+      kind: Secret
+      name: chaos-mesh-daemon-client-certs
+      jsonPointers: [/data]
+    - group: ""
+      kind: Secret
+      name: chaos-mesh-chaosd-client-certs
+      jsonPointers: [/data]
+    - group: admissionregistration.k8s.io
+      kind: MutatingWebhookConfiguration
+      jqPathExpressions:
+        - .webhooks[]?.clientConfig.caBundle
+    - group: admissionregistration.k8s.io
+      kind: ValidatingWebhookConfiguration
+      jqPathExpressions:
+        - .webhooks[]?.clientConfig.caBundle
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+      # The workflow CRDs are over 1 MB, far beyond the 256 KB client-side apply annotation limit
+      - ServerSideApply=true

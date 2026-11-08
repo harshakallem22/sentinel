@@ -1,0 +1,30 @@
+enableProfiling: false
+
+controllerManager:
+  # Single-node laptop cluster: the default 3 replicas would only triple the memory
+  replicaCount: 1
+  # Only namespaces annotated chaos-mesh.org/inject=enabled (boutique) can be targeted
+  enableFilterNamespace: true
+  resources:
+    requests:
+      cpu: 25m
+      memory: 96Mi
+    limits:
+      memory: 256Mi
+
+chaosDaemon:
+  runtime: containerd
+  # k3s runs its own containerd, not the system one
+  socketPath: /run/k3s/containerd/containerd.sock
+  resources:
+    requests:
+      cpu: 10m
+      memory: 48Mi
+    limits:
+      memory: 256Mi
+
+# Experiments are YAML in Git, so no UI; no DNS faults are planned
+dashboard:
+  create: false
+dnsServer:
+  create: false
