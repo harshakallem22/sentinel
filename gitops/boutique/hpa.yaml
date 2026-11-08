@@ -55,3 +55,23 @@ spec:
         target:
           type: Utilization
           averageUtilization: 70
+---
+# Target of the Day 12 CPU-stress experiment; its waypoint already balances per request, so new replicas take load at once
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: checkoutservice
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: checkoutservice
+  minReplicas: 1
+  maxReplicas: 3
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
