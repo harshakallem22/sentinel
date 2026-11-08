@@ -35,8 +35,8 @@ make status    # wait until all Argo CD apps are Synced/Healthy
 | What | How |
 |---|---|
 | Shop | http://localhost:8080 |
-| Grafana | `make grafana-ui` → http://localhost:3000 (password: `make grafana-admin`) |
-| Argo CD | `make argocd-ui` → http://localhost:8081 (user `admin`, password: `make argocd-admin`) |
+| Grafana | `make grafana-ui` → http://localhost:3000 (login: `make grafana-admin`) |
+| Argo CD | `make argocd-ui` → http://localhost:8081 (login: `make argocd-admin`) |
 | Test an order | `scripts/checkout-smoke.sh` |
 | Load test | `loadtest/run-suite.sh smoke` |
 | Chaos test | `kubectl apply -f chaos/experiments/currencyservice-latency.yaml` |
