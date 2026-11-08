@@ -15,3 +15,12 @@ configMapGenerator:
   - name: dashboard-boutique-slo
     files:
       - slo.json
+  - name: dashboard-golden-signals
+    files:
+      - golden-signals.json
+  - name: dashboard-frontend-canary
+    files:
+      - canary.json
+  - name: dashboard-mesh
+    files:
+      - mesh.json

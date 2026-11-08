@@ -265,6 +265,80 @@
         "overrides": []
       },
       "options": {}
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "HPA replicas",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 23,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (horizontalpodautoscaler) (kube_horizontalpodautoscaler_status_current_replicas{namespace=\"boutique\"})",
+          "legendFormat": "{{horizontalpodautoscaler}} current"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "max by (horizontalpodautoscaler) (kube_horizontalpodautoscaler_status_desired_replicas{namespace=\"boutique\"})",
+          "legendFormat": "{{horizontalpodautoscaler}} desired"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 9,
+      "type": "state-timeline",
+      "title": "Chaos experiments running",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 23,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (type) (chaos_controller_manager_chaos_experiments{namespace=\"boutique\", phase=\"Running\"}) > 0",
+          "legendFormat": "{{type}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": []
+      },
+      "options": {},
+      "description": "Chaos Mesh experiments in the Running phase"
     }
   ],
   "templating": {

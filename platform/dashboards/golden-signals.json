@@ -1,0 +1,322 @@
+{
+  "title": "Boutique Golden Signals",
+  "uid": "boutique-golden-signals",
+  "tags": [
+    "sentinel"
+  ],
+  "timezone": "utc",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "editable": false,
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Frontend traffic (req/s)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(traefik_service_requests_total{service=~\"boutique-frontend-(stable|canary)-80@.*\"}[1m]))",
+          "legendFormat": "all"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum(rate(traefik_service_requests_total{service=~\"boutique-frontend-(stable|canary)-80@.*\",code=~\"5..\"}[1m]))",
+          "legendFormat": "5xx"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "description": "From Traefik, in front of the frontend"
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Frontend error ratio",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 0,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "(sum(rate(traefik_service_requests_total{service=~\"boutique-frontend-(stable|canary)-80@.*\",code=~\"5..\"}[1m])) or vector(0)) / sum(rate(traefik_service_requests_total{service=~\"boutique-frontend-(stable|canary)-80@.*\"}[1m]))",
+          "legendFormat": "5xx / all"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Frontend latency",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 0,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.5, sum by (le) (rate(traefik_service_request_duration_seconds_bucket{service=~\"boutique-frontend-(stable|canary)-80@.*\"}[1m])))",
+          "legendFormat": "P50"
+        },
+        {
+          "refId": "B",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(traefik_service_request_duration_seconds_bucket{service=~\"boutique-frontend-(stable|canary)-80@.*\"}[1m])))",
+          "legendFormat": "P95"
+        },
+        {
+          "refId": "C",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(traefik_service_request_duration_seconds_bucket{service=~\"boutique-frontend-(stable|canary)-80@.*\"}[1m])))",
+          "legendFormat": "P99"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Backend traffic via waypoints (req/s)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 8,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (destination_service_name) (rate(istio_requests_total{reporter=\"waypoint\", destination_service_namespace=\"boutique\"}[1m]))",
+          "legendFormat": "{{destination_service_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "description": "Per-request (L7) metrics exist only for services behind a waypoint: checkout, currency, recommendation"
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Backend error ratio via waypoints",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 8,
+        "y": 8,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "(sum by (destination_service_name) (rate(istio_requests_total{reporter=\"waypoint\", destination_service_namespace=\"boutique\",grpc_response_status!=\"0\"}[1m])) or sum by (destination_service_name) (rate(istio_requests_total{reporter=\"waypoint\", destination_service_namespace=\"boutique\"}[1m])) * 0) / sum by (destination_service_name) (rate(istio_requests_total{reporter=\"waypoint\", destination_service_namespace=\"boutique\"}[1m]))",
+          "legendFormat": "{{destination_service_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0
+        },
+        "overrides": []
+      },
+      "options": {},
+      "description": "gRPC status other than OK"
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Backend P95 via waypoints",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 16,
+        "y": 8,
+        "w": 8,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le, destination_service_name) (rate(istio_request_duration_milliseconds_bucket{reporter=\"waypoint\", destination_service_namespace=\"boutique\"}[1m])))",
+          "legendFormat": "{{destination_service_name}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms"
+        },
+        "overrides": []
+      },
+      "options": {}
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Connections opened per service (L4, ztunnel)",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (destination_workload) (rate(istio_tcp_connections_opened_total{reporter=\"destination\", destination_workload_namespace=\"boutique\"}[5m]))",
+          "legendFormat": "{{destination_workload}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "cps"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "description": "Every service, including the ones without L7 metrics"
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Saturation: CPU used / requested",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 12,
+        "y": 16,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "expr": "sum by (container) (rate(container_cpu_usage_seconds_total{namespace=\"boutique\", container!=\"\", container!=\"POD\"}[2m])) / sum by (container) (kube_pod_container_resource_requests{namespace=\"boutique\", resource=\"cpu\"})",
+          "legendFormat": "{{container}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "options": {},
+      "description": "HPAs target 70% for frontend, checkout, currency and recommendation"
+    }
+  ]
+}
