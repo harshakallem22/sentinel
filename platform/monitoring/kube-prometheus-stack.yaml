@@ -199,7 +199,8 @@ grafana:
       cpu: 25m
       memory: 128Mi
     limits:
-      memory: 320Mi
+      # Idles at ~275Mi with its bundled plugin processes; 320Mi caused an OOM kill every 1-2 hours
+      memory: 512Mi
   additionalDataSources:
     - name: Loki
       type: loki
