@@ -38,9 +38,10 @@ spec:
       - RespectIgnoreDifferences=true
       # Rollout and Traefik CRDs come from other apps in the same push
       - SkipDryRunOnMissingResource=true
+    # Other apps' CRDs can take minutes on a fresh cluster; retry at most a minute apart instead of giving up after 5 tries
     retry:
-      limit: 5
+      limit: 15
       backoff:
-        duration: 30s
+        duration: 10s
         factor: 2
-        maxDuration: 5m
+        maxDuration: 1m
