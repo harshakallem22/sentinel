@@ -16,7 +16,9 @@ up: cluster images secrets bootstrap ## create or start the cluster, build image
 
 cluster: ## create the k3d cluster, or start it if it exists
 	@if k3d cluster list $(CLUSTER) >/dev/null 2>&1; then \
-		k3d cluster start $(CLUSTER); \
+		k3d cluster start $(CLUSTER) && \
+		kubectl config use-context $(CONTEXT) >/dev/null && \
+		./scripts/remesh-after-restart.sh; \
 	else \
 		k3d cluster create --config $(K3D_CONFIG); \
 	fi
