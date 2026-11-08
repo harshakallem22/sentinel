@@ -1,0 +1,17 @@
+# Applied by hand for a test run, not by Argo CD, which would re-run it on every sync
+# Outlasts the 5-minute hold of FrontendLatencyP95High, so the alert must fire
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: currencyservice-latency-7m
+  namespace: boutique
+spec:
+  action: delay
+  mode: all
+  selector:
+    namespaces: [boutique]
+    labelSelectors:
+      app: currencyservice
+  delay:
+    latency: 300ms
+  duration: 7m

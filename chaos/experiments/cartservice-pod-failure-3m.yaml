@@ -1,0 +1,15 @@
+# Applied by hand for a test run, not by Argo CD, which would re-run it on every sync
+# Long enough to cross the 14.4x fast-burn threshold and the 5-minute alert holds (a pod kill heals in ~27 s)
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: cartservice-pod-failure-3m
+  namespace: boutique
+spec:
+  action: pod-failure
+  mode: one
+  selector:
+    namespaces: [boutique]
+    labelSelectors:
+      app: cartservice
+  duration: 3m
