@@ -15,7 +15,7 @@ spec:
         releaseName: alloy
         valueFiles:
           - $values/platform/logging/alloy.yaml
-    - repoURL: git@github.com:harshakallem22/sentinel.git
+    - repoURL: https://github.com/harshakallem22/sentinel.git
       targetRevision: main
       ref: values
   destination:

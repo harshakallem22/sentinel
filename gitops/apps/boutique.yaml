@@ -8,7 +8,7 @@ metadata:
 spec:
   project: boutique
   source:
-    repoURL: git@github.com:harshakallem22/sentinel.git
+    repoURL: https://github.com/harshakallem22/sentinel.git
     targetRevision: main
     path: gitops/boutique
   destination:

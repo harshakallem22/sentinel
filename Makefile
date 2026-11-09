@@ -6,7 +6,7 @@ IAM_DIR    := terraform/localstack-iam
 LOCALSTACK := localstack/localstack:2026.09.1
 
 .DEFAULT_GOAL := help
-.PHONY: help up down destroy status cluster images secrets repo-secret grafana-secret bootstrap validate argocd-ui argocd-admin grafana-ui grafana-admin localstack-up localstack-down iam iam-check
+.PHONY: help up down destroy status cluster images secrets grafana-secret bootstrap validate argocd-ui argocd-admin grafana-ui grafana-admin localstack-up localstack-down iam iam-check
 
 help: ## list targets
 	@grep -E '^[a-z-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-16s %s\n", $$1, $$2}'
@@ -27,10 +27,7 @@ cluster: ## create the k3d cluster, or start it if it exists
 images: ## build the Online Boutique images for arm64 into the local registry (skips existing)
 	@./scripts/build-boutique-images.sh
 
-secrets: repo-secret grafana-secret ## create all in-cluster secrets (never stored in Git)
-
-repo-secret: ## give Argo CD read access to the private repo
-	@./scripts/argocd-repo-secret.sh
+secrets: grafana-secret ## create all in-cluster secrets (never stored in Git)
 
 grafana-secret: ## create Grafana's admin login with a random password
 	@./scripts/grafana-admin-secret.sh

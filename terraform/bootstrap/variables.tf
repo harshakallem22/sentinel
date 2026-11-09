@@ -13,7 +13,7 @@ variable "kube_context" {
 variable "repo_url" {
   description = "Git repository that Argo CD syncs from."
   type        = string
-  default     = "git@github.com:harshakallem22/sentinel.git"
+  default     = "https://github.com/harshakallem22/sentinel.git"
 }
 
 variable "target_revision" {

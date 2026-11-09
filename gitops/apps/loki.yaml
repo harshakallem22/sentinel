@@ -15,7 +15,7 @@ spec:
         releaseName: loki
         valueFiles:
           - $values/platform/logging/loki.yaml
-    - repoURL: git@github.com:harshakallem22/sentinel.git
+    - repoURL: https://github.com/harshakallem22/sentinel.git
       targetRevision: main
       ref: values
   destination:

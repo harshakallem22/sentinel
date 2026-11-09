@@ -15,7 +15,7 @@ spec:
         releaseName: chaos-mesh
         valueFiles:
           - $values/platform/chaos/chaos-mesh.yaml
-    - repoURL: git@github.com:harshakallem22/sentinel.git
+    - repoURL: https://github.com/harshakallem22/sentinel.git
       targetRevision: main
       ref: values
   destination:
